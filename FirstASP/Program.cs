@@ -1,10 +1,17 @@
+using Microsoft.AspNetCore.WebUtilities;
+
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 app.Run(async (HttpContext context) =>
 {
-    context.Response.StatusCode = 400;
-    await context.Response.WriteAsync("Bad Request");
+    string request = context.Request.Path;
+    string query = context.Request.QueryString.ToString();
+    StreamReader reader = new StreamReader(context.Request.Body);
+    string body = await reader.ReadToEndAsync();
+    
+    context.Response.StatusCode = 200;
+    await context.Response.WriteAsync("path: " + request + ", query: " + query);
 
 });
 
