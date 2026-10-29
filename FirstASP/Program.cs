@@ -7,3 +7,5 @@ app.Run(async (HttpContext context) =>
     await context.Response.WriteAsync("Bad Request");
 
 });
+
+app.Run();
