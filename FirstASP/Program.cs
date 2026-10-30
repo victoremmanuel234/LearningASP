@@ -8,15 +8,24 @@ var app = builder.Build();
 
 app.Use(async (context, next) =>
 {
-    await context.Response.WriteAsync("Hello from middleware 1\n");
-    await next(context);
+    // Custom logic before the next middleware
+    await context.Response.WriteAsync("Hello from inline middleware\n");
+    await next();
 });
 
-app.UseMyCustomMiddleware();
+app.UseWhen( context => context.Request.Query.ContainsKey("username"),
+             app => app.Use(async (context, next) =>
+             {
+                 // Custom logic before the next middleware
+                 string username = context.Request.Query["username"].ToString();
+                 await context.Response.WriteAsync("Hello from conditional middleware with username: " + username + "\n");
+                 await next();
+             })
+);
 
-app.Run(async context =>
+app.Run(async (context) =>
 {
-    await context.Response.WriteAsync("Hello from Called Middleware from custom middleware\n");
+    await context.Response.WriteAsync("Hello from terminal middleware\n");
 });
 
 app.Run();
