@@ -1,18 +1,22 @@
+using CustomMiddleware;
 using Microsoft.AspNetCore.WebUtilities;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddTransient<MyCustomMiddleware>();
 var app = builder.Build();
 
-app.Run(async (HttpContext context) =>
+app.Use(async (context, next) =>
 {
-    string request = context.Request.Path;
-    string query = context.Request.QueryString.ToString();
-    StreamReader reader = new StreamReader(context.Request.Body);
-    string body = await reader.ReadToEndAsync();
-    
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync("path: " + request + ", query: " + query);
+    await context.Response.WriteAsync("Hello from middleware 1\n");
+    await next(context);
+});
 
+app.UseMyCustomMiddleware();
+
+app.Run(async context =>
+{
+    await context.Response.WriteAsync("Hello from Called Middleware from custom middleware\n");
 });
 
 app.Run();
