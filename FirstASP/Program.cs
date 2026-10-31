@@ -1,31 +1,16 @@
-using CustomMiddleware;
-using Microsoft.AspNetCore.WebUtilities;
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<MyCustomMiddleware>();
 var app = builder.Build();
 
-app.Use(async (context, next) =>
+app.Map("files/{filename :minlength(10)}.{extension}",async context =>
 {
-    // Custom logic before the next middleware
-    await context.Response.WriteAsync("Hello from inline middleware\n");
-    await next();
+    var filename = context.Request.RouteValues["filename"]?.ToString();
+    var extension = context.Request.RouteValues["extension"]?.ToString();
+    await context.Response.WriteAsync($"the request sent at filename: {filename}, extension: {extension}");
 });
 
-app.UseWhen( context => context.Request.Query.ContainsKey("username"),
-             app => app.Use(async (context, next) =>
-             {
-                 // Custom logic before the next middleware
-                 string username = context.Request.Query["username"].ToString();
-                 await context.Response.WriteAsync("Hello from conditional middleware with username: " + username + "\n");
-                 await next();
-             })
-);
-
-app.Run(async (context) =>
+app.MapFallback(async context =>
 {
-    await context.Response.WriteAsync("Hello from terminal middleware\n");
+    await context.Response.WriteAsync("this is the fallback Routing");
 });
-
 app.Run();
